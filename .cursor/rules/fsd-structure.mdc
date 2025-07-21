@@ -1,0 +1,124 @@
+---
+description: Feature-Sliced Design Rules for Next.js
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: true
+---
+
+# FSD Architecture
+
+## Project Context
+
+This document provides comprehensive rules for AI agents coding in Next.js projects that use Ultracite for strict type safety, accessibility standards, and consistent code quality, combined with Feature-Sliced Design (FSD) architecture for scalable project organization.
+
+## Before Writing Code
+
+1. Analyze existing patterns in the codebase
+2. Consider edge cases and error scenarios
+3. Respect FSD layer hierarchy and import rules
+4. Use proper file structure and naming conventions
+
+## Feature-Sliced Design (FSD) Architecture
+
+### Core Structure
+
+3-level hierarchy: **Layers** → **Slices** → **Segments**
+
+### 6 Layers (Top → Bottom)
+
+1. **App** - Global config, providers, routing
+2. **Views** - Pages/screens (renamed from `pages` for NextJS)
+3. **Widgets** - Large reusable UI blocks
+4. **Features** - User interactions, business logic
+5. **Entities** - Business domain objects (User, Post, etc.)
+6. **Shared** - Foundation utilities, UI kit, API client
+
+### Import Rule
+
+**Only import from layers below**: App → Views → Widgets → Features → Entities → Shared
+
+### Standard Segments
+
+- **ui** - Components (`component-name.tsx`)
+- **api** - Backend calls, queries
+- **model** - Data types, stores, business logic
+- **lib** - Focused utilities
+- **config** - Settings, feature flags
+
+### Public API Rule
+
+Every slice needs `index.ts` with exports. Import only through public API.
+
+```ts
+// @/features/auth/index.ts
+export { LoginForm } from './ui/login-form';
+export { useAuth } from './api/use-auth';
+```
+
+### Folder Structure
+
+```
+└── src/
+    ├── middleware.ts   # NextJS middleware
+    ├── pages/          # NextJS routing
+    │   ├── index.tsx   # → @/views/home
+    │   └── _app.tsx    # → @/app/index.tsx
+    ├── app/            # Providers, global config
+    ├── views/          # Pages (FSD layer)
+    ├── widgets/
+    ├── features/
+    ├── entities/
+    └── shared/
+```
+
+### Cross-Entity Imports (@x)
+
+For entity relationships only:
+
+```ts
+// @/entities/artist/@x/song.ts
+export type { Artist } from '../model/artist';
+
+// @/entities/song/model/song.ts
+import type { Artist } from '@/entities/artist/@x/song';
+```
+
+### React Query Pattern
+
+```ts
+// @/entities/post/api/post.queries.ts
+export const postQueries = {
+  all: () => ['posts'],
+  list: (page: number) =>
+    queryOptions({
+      queryKey: ['posts', 'list', page],
+      queryFn: () => getPosts(page),
+    }),
+};
+```
+
+### Decision Guide
+
+- **Feature**: Reused across pages + main user interaction
+- **Widget**: Large UI block reused OR major page section
+- **Entity**: Real business concept the business uses
+- **Shared**: No business logic, used across domains
+
+### Import Patterns
+
+```ts
+// Same slice - relative
+import { validation } from '../lib/validation';
+
+// Different slice - absolute with @
+import { Button } from '@/shared/ui/button';
+import { userApi } from '@/entities/user';
+```
+
+### File Examples
+
+```
+@/shared/ui/button/button.tsx
+@/features/auth/ui/login-form.tsx
+@/entities/user/api/user.queries.ts
+@/views/home/ui/home-page.tsx
+```

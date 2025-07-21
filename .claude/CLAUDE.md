@@ -1,21 +1,124 @@
-# Project Context
-Ultracite enforces strict type safety, accessibility standards, and consistent code quality for JavaScript/TypeScript projects using Biome's lightning-fast formatter and linter.
-
-## Key Principles
-- Zero configuration required
-- Subsecond performance
-- Maximum type safety
-- AI-friendly code generation
+# AI-Ready Next.js Project Rules
 
 ## Before Writing Code
+
 1. Analyze existing patterns in the codebase
 2. Consider edge cases and error scenarios
-3. Follow the rules below strictly
+3. Follow the Ultracite rules below strictly
 4. Validate accessibility requirements
+5. Respect FSD layer hierarchy and import rules
+6. Use proper file structure and naming conventions
 
-## Rules
+## Feature-Sliced Design (FSD) Architecture
+
+### Core Structure
+
+3-level hierarchy: **Layers** → **Slices** → **Segments**
+
+### 6 Layers (Top → Bottom)
+
+1. **App** - Global config, providers, routing
+2. **Views** - Pages/screens (renamed from `pages` for NextJS)
+3. **Widgets** - Large reusable UI blocks
+4. **Features** - User interactions, business logic
+5. **Entities** - Business domain objects (User, Post, etc.)
+6. **Shared** - Foundation utilities, UI kit, API client
+
+### Import Rule
+
+**Only import from layers below**: App → Views → Widgets → Features → Entities → Shared
+
+### Standard Segments
+
+- **ui** - Components (`component-name.tsx`)
+- **api** - Backend calls, queries
+- **model** - Data types, stores, business logic
+- **lib** - Focused utilities
+- **config** - Settings, feature flags
+
+### Public API Rule
+
+Every slice needs `index.ts` with exports. Import only through public API.
+
+```ts
+// @/features/auth/index.ts
+export { LoginForm } from './ui/login-form';
+export { useAuth } from './api/use-auth';
+```
+
+### Folder Structure
+
+```
+└── src/
+    ├── middleware.ts   # NextJS middleware
+    ├── pages/          # NextJS routing
+    │   ├── index.tsx   # → @/views/home
+    │   └── _app.tsx    # → @/app/index.tsx
+    ├── app/            # Providers, global config
+    ├── views/          # Pages (FSD layer)
+    ├── widgets/
+    ├── features/
+    ├── entities/
+    └── shared/
+```
+
+### Cross-Entity Imports (@x)
+
+For entity relationships only:
+
+```ts
+// @/entities/artist/@x/song.ts
+export type { Artist } from '../model/artist';
+
+// @/entities/song/model/song.ts
+import type { Artist } from '@/entities/artist/@x/song';
+```
+
+### React Query Pattern
+
+```ts
+// @/entities/post/api/post.queries.ts
+export const postQueries = {
+  all: () => ['posts'],
+  list: (page: number) =>
+    queryOptions({
+      queryKey: ['posts', 'list', page],
+      queryFn: () => getPosts(page),
+    }),
+};
+```
+
+### Decision Guide
+
+- **Feature**: Reused across pages + main user interaction
+- **Widget**: Large UI block reused OR major page section
+- **Entity**: Real business concept the business uses
+- **Shared**: No business logic, used across domains
+
+### Import Patterns
+
+```ts
+// Same slice - relative
+import { validation } from '../lib/validation';
+
+// Different slice - absolute with @
+import { Button } from '@/shared/ui/button';
+import { userApi } from '@/entities/user';
+```
+
+### File Examples
+
+```
+@/shared/ui/button/button.tsx
+@/features/auth/ui/login-form.tsx
+@/entities/user/api/user.queries.ts
+@/views/home/ui/home-page.tsx
+```
+
+## Ultracite Rules
 
 ### Accessibility (a11y)
+
 - Don't use `accessKey` attribute on any HTML element.
 - Don't set `aria-hidden="true"` on focusable elements.
 - Don't add ARIA roles, states, and properties to elements that don't support them.
@@ -52,6 +155,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Use correct ISO language/country codes for the `lang` attribute.
 
 ### Code Complexity and Quality
+
 - Don't use consecutive spaces in regular expression literals.
 - Don't use the `arguments` object.
 - Don't use primitive type aliases or misleading types.
@@ -107,6 +211,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Don't use literal numbers that lose precision.
 
 ### React and JSX Best Practices
+
 - Don't use the return value of React.render.
 - Make sure all dependencies are correctly specified in React hooks.
 - Make sure all React hooks are called from the top level of component functions.
@@ -125,6 +230,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Watch out for possible "wrong" semicolons inside JSX elements.
 
 ### Correctness and Safety
+
 - Don't assign a value to itself.
 - Don't return a value from a setter.
 - Don't compare expressions that modify string case with non-compliant values.
@@ -149,7 +255,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Don't use bitwise operators.
 - Don't use expressions where the operation doesn't change the value.
 - Make sure Promise-like statements are handled appropriately.
-- Don't use __dirname and __filename in the global scope.
+- Don't use **dirname and **filename in the global scope.
 - Prevent import cycles.
 - Don't use configured elements.
 - Don't hardcode sensitive data like API keys and tokens.
@@ -180,6 +286,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Don't use `target="_blank"` without `rel="noopener"`.
 
 ### TypeScript Best Practices
+
 - Don't use TypeScript enums.
 - Don't export imported variables.
 - Don't add type annotations to variables, parameters, and class properties that are initialized with literal expressions.
@@ -204,6 +311,7 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Use the namespace keyword instead of the module keyword to declare TypeScript namespaces.
 
 ### Style and Consistency
+
 - Don't use global `eval()`.
 - Don't use callbacks in asynchronous tests and hooks.
 - Don't use negation in `if` statements that have `else` clauses.
@@ -291,23 +399,26 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Make sure to use the "use strict" directive in script files.
 
 ### Next.js Specific Rules
+
 - Don't use `<img>` elements in Next.js projects.
 - Don't use `<head>` elements in Next.js projects.
-- Don't import next/document outside of pages/_document.jsx in Next.js projects.
-- Don't use the next/head module in pages/_document.js on Next.js projects.
+- Don't import next/document outside of pages/\_document.jsx in Next.js projects.
+- Don't use the next/head module in pages/\_document.js on Next.js projects.
 
 ### Testing Best Practices
+
 - Don't use export or module.exports in test files.
 - Don't use focused tests.
 - Make sure the assertion function, like expect, is placed inside an it() function call.
 - Don't use disabled tests.
 
 ## Common Tasks
-- `npx ultracite init` - Initialize Ultracite in your project
+
 - `npx ultracite format` - Format and fix code automatically
 - `npx ultracite lint` - Check for issues without fixing
 
 ## Example: Error Handling
+
 ```typescript
 // ✅ Good: Comprehensive error handling
 try {
@@ -324,4 +435,44 @@ try {
 } catch (e) {
   console.log(e);
 }
+```
+
+## Architecture Integration Examples
+
+### Feature with Entity Import
+
+```typescript
+// @/features/user-profile/ui/profile-form.tsx
+import type { User } from '@/entities/user';
+import { Button } from '@/shared/ui/button';
+import { updateUserProfile } from '../api/user-profile.api';
+
+export const ProfileForm = ({ user }: { user: User }) => {
+  // Component implementation following Ultracite rules
+};
+```
+
+### Widget Composition
+
+```typescript
+// @/widgets/dashboard/ui/dashboard.tsx
+import { StatsCard } from '@/features/analytics';
+import { UserMenu } from '@/features/user-menu';
+import { Sidebar } from '@/shared/ui/sidebar';
+
+export const Dashboard = () => {
+  // Widget implementation following both FSD and Ultracite rules
+};
+```
+
+### View Implementation
+
+```typescript
+// @/views/home/ui/home-page.tsx
+import { Hero } from '@/widgets/hero';
+import { FeaturedPosts } from '@/widgets/featured-posts';
+
+export const HomePage = () => {
+  // Page implementation following all rules
+};
 ```
