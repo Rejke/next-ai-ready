@@ -5,18 +5,21 @@ A modern Next.js template combining **Feature-Sliced Design (FSD)** architecture
 ## ✨ Features
 
 ### 🏗️ Architecture & Design
+
 - **[Feature-Sliced Design (FSD)](https://feature-sliced.design/)** - Scalable frontend architecture
 - **BMAD Framework** - Business Methodology for Agile Development with AI agents
 - **Type-safe** - Full TypeScript support with strict mode
 - **Modern tooling** - Biome for fast linting and formatting
 
 ### 🎨 UI & Styling
+
 - **[shadcn/ui](https://ui.shadcn.com/)** - High-quality React components
 - **Tailwind CSS v4** - Latest version with CSS custom properties
 - **Dark mode** - Built-in theme system with CSS variables
 - **Animations** - tw-animate-css for smooth transitions
 
 ### 🤖 AI Development Support
+
 - **AI Agent Configurations** - Pre-configured roles (PO, PM, Architect, Developer, QA, UX, BA, SM)
 - **Workflow Templates** - Greenfield and brownfield project workflows
 - **IDE Integration** - Claude Code and Cursor support
@@ -24,30 +27,34 @@ A modern Next.js template combining **Feature-Sliced Design (FSD)** architecture
 ## 🚀 Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/next-ai-ready.git
    cd next-ai-ready
    ```
 
 2. **Install dependencies**
+
    ```bash
    bun install
-   # or npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    # Edit .env.local with your configuration
    ```
 
 4. **Start PostgreSQL with Docker**
+
    ```bash
    bun run docker:up
    # or docker-compose up -d
    ```
 
 5. **Run database migrations**
+
    ```bash
    bun run db:push
    # Optional: Seed database with test data
@@ -55,6 +62,7 @@ A modern Next.js template combining **Feature-Sliced Design (FSD)** architecture
    ```
 
 6. **Start development server**
+
    ```bash
    bun run dev
    # or npm run dev
@@ -82,7 +90,7 @@ bmad/            # BMAD framework documentation
 ### FSD Architecture Layers
 
 - **Shared** (`@/shared`) - Reusable utilities, UI components, types
-- **Entities** (`@/entities`) - Business logic and domain models  
+- **Entities** (`@/entities`) - Business logic and domain models
 - **Features** (`@/features`) - User-facing features
 - **Widgets** (`@/widgets`) - Composite components
 - **Views** (`@/views`) - Page-level components
@@ -132,6 +140,7 @@ bun run docker:reset # Reset database (delete all data)
 This template includes the BMAD framework for AI-assisted development:
 
 ### Available AI Agents
+
 - **Product Owner** - Requirements and prioritization
 - **Project Manager** - Planning and coordination
 - **Architect** - Technical design decisions
@@ -142,6 +151,7 @@ This template includes the BMAD framework for AI-assisted development:
 - **Scrum Master** - Agile process management
 
 ### Workflow Types
+
 - **Greenfield** - New project workflows
 - **Brownfield** - Existing project enhancement
 - **Fullstack** - Complete application development
@@ -160,11 +170,11 @@ The template includes Better Auth with the following features:
 ### Using Authentication Components
 
 ```tsx
-import { SignInForm, SignUpForm } from "@/features/auth"
-import { useAuth } from "@/app/providers/auth-provider"
+import { SignInForm, SignUpForm } from '@/features/auth';
+import { useAuth } from '@/app/providers/auth-provider';
 
 // In your component
-const { session, loading } = useAuth()
+const { session, loading } = useAuth();
 
 if (session) {
   // User is authenticated
