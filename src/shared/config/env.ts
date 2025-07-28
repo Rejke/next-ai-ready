@@ -26,6 +26,12 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(['development', 'production', 'test'])
       .default('development'),
+
+    // Logging
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+      .optional(),
+    LOG_PRETTY: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url().default('http://localhost:3000'),
@@ -50,6 +56,10 @@ export const env = createEnv({
 
     // Node
     NODE_ENV: process.env.NODE_ENV,
+
+    // Logging
+    LOG_LEVEL: process.env.LOG_LEVEL,
+    LOG_PRETTY: process.env.LOG_PRETTY,
 
     // Client
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,

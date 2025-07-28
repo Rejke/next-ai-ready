@@ -1,8 +1,10 @@
+import { createPerformanceLogger, dbLogger, logError } from '../../lib/logger';
 import { db } from './client';
 import { users } from './schema';
 
 async function seed() {
-  console.log('🌱 Starting database seed...');
+  dbLogger.info('Starting database seed...');
+  const perfLogger = createPerformanceLogger('db.seed');
 
   try {
     // Create test user
@@ -15,11 +17,27 @@ async function seed() {
       })
       .returning();
 
-    console.log('✅ Created test user:', testUser.email);
+    dbLogger.info({
+      operation: 'user.create',
+      email: testUser.email,
+      userId: testUser.id,
+      msg: 'Created test user',
+    });
 
-    console.log('🎉 Database seed completed successfully!');
+    const duration = perfLogger.end({
+      usersCreated: 1,
+      status: 'success',
+    });
+
+    dbLogger.info({
+      duration,
+      msg: 'Database seed completed successfully',
+    });
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    logError(error, {
+      operation: 'db.seed',
+      context: 'Database seeding failed',
+    });
     process.exit(1);
   }
 

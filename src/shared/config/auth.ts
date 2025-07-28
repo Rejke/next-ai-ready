@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { accounts, sessions, users, verificationTokens } from './db';
 import { db } from './db/client';
 import { env } from './env';
+import { authLogger, logAuditEvent } from '../lib/logger';
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -40,5 +41,44 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+  onRequest: (request: Request) => {
+    // Log authentication requests
+    authLogger.debug({
+      method: request.method,
+      url: request.url,
+      path: new URL(request.url).pathname,
+      msg: 'Auth request',
+    });
+  },
+  onResponse: (response: Response) => {
+    // Log authentication responses
+    const url = response.url || '';
+    const isError = !response.ok;
+    
+    if (isError) {
+      authLogger.error({
+        status: response.status,
+        statusText: response.statusText,
+        url,
+        msg: 'Auth request failed',
+      });
+    } else {
+      // Log successful auth events as audit events
+      const pathname = new URL(url).pathname;
+      if (pathname.includes('sign-in')) {
+        logAuditEvent('user.signin', undefined, { url });
+      } else if (pathname.includes('sign-up')) {
+        logAuditEvent('user.signup', undefined, { url });
+      } else if (pathname.includes('sign-out')) {
+        logAuditEvent('user.signout', undefined, { url });
+      }
+      
+      authLogger.info({
+        status: response.status,
+        url,
+        msg: 'Auth request successful',
+      });
+    }
   },
 });
