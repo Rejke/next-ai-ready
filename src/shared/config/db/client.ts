@@ -1,10 +1,12 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { env } from '../env';
+// biome-ignore lint/performance/noNamespaceImport: drizzle requirements
 import * as schema from './schema';
 
 const connectionString =
-  process.env.DATABASE_URL ||
-  `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || 'postgres'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'next_ai_ready'}`;
+  env.DATABASE_URL ||
+  `postgresql://${env.DB_USER}:${env.DB_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}`;
 
 // For query purposes
 const queryClient = postgres(connectionString);
