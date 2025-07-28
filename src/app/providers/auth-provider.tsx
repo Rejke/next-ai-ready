@@ -1,6 +1,8 @@
-import type { Session } from 'better-auth/client';
 import { createContext, type ReactNode, useContext } from 'react';
 import { useSession } from '@/shared/lib/auth-client';
+
+// Get Session type from the auth client hook
+type Session = NonNullable<ReturnType<typeof useSession>['data']>;
 
 interface AuthContextType {
   session: Session | null;
@@ -11,7 +13,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: session, isLoading: loading, error } = useSession();
+  const { data: session, isPending: loading, error } = useSession();
 
   return (
     <AuthContext.Provider value={{ session, loading, error }}>
