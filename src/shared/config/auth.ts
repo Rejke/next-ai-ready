@@ -1,9 +1,9 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { auditLogger, authLogger } from '../lib/logger';
 import { accounts, sessions, users, verificationTokens } from './db';
 import { db } from './db/client';
 import { env } from './env';
-import { authLogger, logAuditEvent } from '../lib/logger';
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -55,7 +55,7 @@ export const auth = betterAuth({
     // Log authentication responses
     const url = response.url || '';
     const isError = !response.ok;
-    
+
     if (isError) {
       authLogger.error({
         status: response.status,
@@ -67,13 +67,25 @@ export const auth = betterAuth({
       // Log successful auth events as audit events
       const pathname = new URL(url).pathname;
       if (pathname.includes('sign-in')) {
-        logAuditEvent('user.signin', undefined, { url });
+        auditLogger.info({
+          event: 'user.signin',
+          url,
+          timestamp: new Date().toISOString(),
+        });
       } else if (pathname.includes('sign-up')) {
-        logAuditEvent('user.signup', undefined, { url });
+        auditLogger.info({
+          event: 'user.signup',
+          url,
+          timestamp: new Date().toISOString(),
+        });
       } else if (pathname.includes('sign-out')) {
-        logAuditEvent('user.signout', undefined, { url });
+        auditLogger.info({
+          event: 'user.signout',
+          url,
+          timestamp: new Date().toISOString(),
+        });
       }
-      
+
       authLogger.info({
         status: response.status,
         url,

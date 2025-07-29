@@ -106,32 +106,37 @@ paymentLogger.info({
 ### Error Logging
 
 ```typescript
-import { logError } from '@/shared/lib/logger';
+import { logger } from '@/shared/lib/logger';
 
 try {
   // Some operation
 } catch (error) {
-  logError(error, {
+  logger.error({
     operation: 'database.query',
     query: 'SELECT * FROM users',
     userId: 123,
-  });
+    error: {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+  }, 'Error occurred');
 }
 ```
 
 ### Performance Logging
 
 ```typescript
-import { createPerformanceLogger } from '@/shared/lib/logger';
+import { logger } from '@/shared/lib/logger';
 
 // Start performance tracking
-const perfLogger = createPerformanceLogger('api.users.list');
+const timer = logger.startTimer('api.users.list');
 
 // Do some work...
 const users = await fetchUsers();
 
 // End tracking and log duration
-perfLogger.end({
+timer.done({
   userCount: users.length,
   cacheHit: false,
 });
@@ -141,19 +146,25 @@ perfLogger.end({
 ### Audit Logging
 
 ```typescript
-import { logAuditEvent } from '@/shared/lib/logger';
+import { auditLogger } from '@/shared/lib/logger';
 
 // Log security-relevant events
-logAuditEvent('user.login', userId, {
+auditLogger.info({
+  event: 'user.login',
+  userId,
   ip: req.ip,
   userAgent: req.headers['user-agent'],
   success: true,
+  timestamp: new Date().toISOString(),
 });
 
-logAuditEvent('admin.permission.grant', adminId, {
+auditLogger.info({
+  event: 'admin.permission.grant',
+  userId: adminId,
   targetUserId,
   permission: 'write',
   resource: 'users',
+  timestamp: new Date().toISOString(),
 });
 ```
 
@@ -284,19 +295,23 @@ import { db } from '@/shared/config/db/client';
 
 // Log database queries
 export async function getUser(id: string) {
-  const perfLogger = createPerformanceLogger('db.user.get');
+  const timer = dbLogger.startTimer('db.user.get');
 
   try {
     const user = await db.select().from(users).where(eq(users.id, id));
 
-    perfLogger.end({ found: !!user });
+    timer.done({ found: !!user });
     return user;
   } catch (error) {
     dbLogger.error({
       operation: 'user.get',
       userId: id,
-      error: error.message,
-    });
+      error: {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    }, 'Database query failed');
     throw error;
   }
 }

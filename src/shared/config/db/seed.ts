@@ -1,10 +1,10 @@
-import { createPerformanceLogger, dbLogger, logError } from '../../lib/logger';
+import { dbLogger } from '../../lib/logger';
 import { db } from './client';
 import { users } from './schema';
 
 async function seed() {
   dbLogger.info('Starting database seed...');
-  const perfLogger = createPerformanceLogger('db.seed');
+  const timer = dbLogger.startTimer('db.seed');
 
   try {
     // Create test user
@@ -24,7 +24,7 @@ async function seed() {
       msg: 'Created test user',
     });
 
-    const duration = perfLogger.end({
+    const duration = timer.done({
       usersCreated: 1,
       status: 'success',
     });
@@ -34,10 +34,18 @@ async function seed() {
       msg: 'Database seed completed successfully',
     });
   } catch (error) {
-    logError(error, {
-      operation: 'db.seed',
-      context: 'Database seeding failed',
-    });
+    dbLogger.error(
+      {
+        operation: 'db.seed',
+        context: 'Database seeding failed',
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      },
+      'Error occurred'
+    );
     process.exit(1);
   }
 

@@ -104,12 +104,12 @@ const createLoggerConfig = () => {
   };
 };
 
-// Create logger instance
-export const logger = pino(createLoggerConfig());
+// Base logger configuration
+const baseLogger = pino(createLoggerConfig());
 
-// Helper functions for structured logging
+// Helper to create child logger
 export const createChildLogger = (context: Record<string, unknown>) => {
-  return logger.child(context);
+  return baseLogger.child(context);
 };
 
 // Request logger for API routes
@@ -128,79 +128,64 @@ export const createRequestLogger = (req: {
   });
 };
 
-// Database logger
-export const dbLogger = createChildLogger({ component: 'database' });
-
-// Auth logger
-export const authLogger = createChildLogger({ component: 'auth' });
-
 // Application logger with component context
 export const createAppLogger = (component: string) => {
-  return createChildLogger({ component });
+  return enhanceLogger(createChildLogger({ component }));
 };
 
-// Performance logger for timing operations
+// Enhanced logger with performance timing
+interface TimerResult {
+  done: (additionalContext?: Record<string, unknown>) => number;
+}
+
+// Extend the logger with a startTimer method
+export function enhanceLogger<T extends pino.Logger>(
+  loggerToEnhance: T,
+): T & {
+  startTimer: (operation: string) => TimerResult;
+} {
+  const enhanced = loggerToEnhance as T & {
+    startTimer: (operation: string) => TimerResult;
+  };
+
+  enhanced.startTimer = (operation: string) => {
+    const startTime = Date.now();
+    const timerLogger = loggerToEnhance.child({
+      operation,
+      type: 'performance',
+    });
+
+    return {
+      done: (additionalContext?: Record<string, unknown>) => {
+        const duration = Date.now() - startTime;
+        timerLogger.info({
+          ...additionalContext,
+          duration,
+          msg: `Operation ${operation} completed`,
+        });
+        return duration;
+      },
+    };
+  };
+
+  return enhanced;
+}
+
+// Create enhanced main logger
+export const logger = enhanceLogger(baseLogger);
+
+// Create enhanced child loggers
+export const dbLogger = enhanceLogger(
+  createChildLogger({ component: 'database' }),
+);
+export const authLogger = enhanceLogger(
+  createChildLogger({ component: 'auth' }),
+);
+export const auditLogger = enhanceLogger(createChildLogger({ type: 'audit' }));
+
+// Performance logger factory for backward compatibility
 export const createPerformanceLogger = (operation: string) => {
-  const startTime = Date.now();
-  const perfLogger = createChildLogger({ operation, type: 'performance' });
-
-  return {
-    logger: perfLogger,
-    end: (additionalContext?: Record<string, unknown>) => {
-      const duration = Date.now() - startTime;
-      perfLogger.info({
-        ...additionalContext,
-        duration,
-        message: `Operation ${operation} completed`,
-      });
-      return duration;
-    },
-  };
-};
-
-// Error logger with stack trace
-export const logError = (
-  error: Error | unknown,
-  context?: Record<string, unknown>,
-) => {
-  const errorContext = {
-    ...context,
-    error: {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    },
-  };
-
-  logger.error(errorContext, 'Error occurred');
-};
-
-// Success operation logger
-export const logSuccess = (
-  operation: string,
-  context?: Record<string, unknown>,
-) => {
-  logger.info({
-    ...context,
-    operation,
-    status: 'success',
-  });
-};
-
-// Audit logger for security events
-export const auditLogger = createChildLogger({ type: 'audit' });
-
-export const logAuditEvent = (
-  event: string,
-  userId?: string,
-  context?: Record<string, unknown>,
-) => {
-  auditLogger.info({
-    event,
-    userId,
-    ...context,
-    timestamp: new Date().toISOString(),
-  });
+  return logger.startTimer(operation);
 };
 
 // Export types

@@ -14,7 +14,7 @@ const generateRequestId = () => {
 // Simple response interceptor
 const interceptResponse = (
   res: NextApiResponse,
-  onComplete: (statusCode: number, body?: unknown) => void,
+  onComplete: (statusCode: number, body?: unknown) => void
 ) => {
   const originalJson = res.json;
   const originalSend = res.send;
@@ -46,8 +46,8 @@ const interceptResponse = (
 export const withLogging = <T = unknown>(
   handler: (
     req: NextApiRequest,
-    res: NextApiResponse<T>,
-  ) => Promise<void> | void,
+    res: NextApiResponse<T>
+  ) => Promise<void> | void
 ) => {
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: _
   return async (req: LoggedRequest, res: NextApiResponse<T>) => {
@@ -115,7 +115,7 @@ export const withLogging = <T = unknown>(
 export const logApiError = (
   req: LoggedRequest,
   error: Error | unknown,
-  context?: Record<string, unknown>,
+  context?: Record<string, unknown>
 ) => {
   const requestLogger = createRequestLogger(req);
 
@@ -137,7 +137,7 @@ export const logApiError = (
 export const logApiSuccess = (
   req: LoggedRequest,
   operation: string,
-  context?: Record<string, unknown>,
+  context?: Record<string, unknown>
 ) => {
   const requestLogger = createRequestLogger(req);
 

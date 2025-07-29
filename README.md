@@ -103,6 +103,13 @@ bmad/            # BMAD framework documentation
 bun run dev          # Start development server with Turbopack
 bun run build        # Create production build
 bun run start        # Start production server
+bun run storybook    # Start Storybook component development
+
+# Testing
+bun run test         # Run tests with Vitest
+bun run test:ui      # Run tests with Vitest UI
+bun run test:watch   # Run tests in watch mode
+bun run test:coverage # Generate test coverage report
 
 # Code Quality
 bun run lint         # Run Biome linter
@@ -134,6 +141,9 @@ bun run docker:reset # Reset database (delete all data)
 - **[Better Auth](https://www.better-auth.com/)** - Modern authentication library
 - **[PostgreSQL](https://www.postgresql.org/)** - Relational database
 - **[Docker](https://www.docker.com/)** - Containerization
+- **[Storybook](https://storybook.js.org/)** - Component development environment
+- **[Vitest](https://vitest.dev/)** - Fast unit testing framework
+- **[Pino](https://getpino.io/)** - Production-ready logging system
 
 ## 🤖 AI Development Workflow
 
@@ -196,6 +206,20 @@ import { Button } from "@/shared/ui/button"
 <Button variant="link">Link</Button>
 ```
 
+### Storybook Component Development
+
+All UI components can be developed and tested in isolation using Storybook:
+
+```bash
+# Start Storybook development server
+bun run storybook
+
+# Build static Storybook site
+bun run build-storybook
+```
+
+Components are automatically documented in Storybook with interactive controls for props and variants.
+
 ## 📝 Adding New Components
 
 ### FSD Component Structure
@@ -252,6 +276,62 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 # Public
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+## 🧪 Testing
+
+The project uses Vitest for fast unit testing with React Testing Library support:
+
+```bash
+# Run all tests
+bun run test
+
+# Run tests in watch mode
+bun run test:watch
+
+# Run tests with UI interface
+bun run test:ui
+
+# Generate coverage report
+bun run test:coverage
+```
+
+Write tests alongside your components:
+
+```tsx
+// src/shared/ui/button/button.test.tsx
+import { render, screen } from '@testing-library/react'
+import { Button } from './button'
+
+describe('Button', () => {
+  it('renders children correctly', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByRole('button')).toHaveTextContent('Click me')
+  })
+})
+```
+
+## 📊 Logging
+
+The project includes Pino for production-ready logging:
+
+```tsx
+import { logger, authLogger, dbLogger } from '@/shared/lib/logger'
+
+// Basic logging
+logger.info('User logged in', { userId: user.id })
+logger.error('Failed to fetch data', { error })
+
+// Component-specific loggers
+authLogger.info('Authentication successful', { userId: user.id })
+dbLogger.error('Query failed', { query, error })
+
+// Performance logging
+const timer = logger.startTimer('operation-name')
+// ... do work
+timer.done({ msg: 'Operation completed', status: 'success' })
+```
+
+Logging configuration can be customized in `src/shared/lib/logger.ts`.
 
 ## 🚀 Deployment
 
